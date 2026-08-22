@@ -6,6 +6,7 @@ import ErrorBanner from "../components/ErrorBanner";
 import Pagination from "../components/Pagination";
 import StatusStamp from "../components/StatusStamp";
 import ConfirmDialog from "../components/ConfirmDialog";
+import { formatDate } from "../utils/formatDate";
 import { Link } from "react-router-dom";
 
 export default function MyBorrowings() {
@@ -123,9 +124,4 @@ export default function MyBorrowings() {
       />
     </div>
   );
-}
-
-function formatDate(iso) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }

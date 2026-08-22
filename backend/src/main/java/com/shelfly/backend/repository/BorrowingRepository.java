@@ -22,4 +22,6 @@ public interface BorrowingRepository extends MongoRepository<Borrowing, String> 
     Optional<Borrowing> findByIdAndUserId(String id, String userId);
 
     List<Borrowing> findByStatusAndDueDateBefore(BorrowingStatus status, java.time.Instant instant);
+
+    List<Borrowing> findByStatusInAndDueDateBefore(List<BorrowingStatus> statuses, java.time.Instant instant);
 }

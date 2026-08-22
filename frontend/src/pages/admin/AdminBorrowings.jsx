@@ -5,6 +5,7 @@ import EmptyState from "../../components/EmptyState";
 import ErrorBanner from "../../components/ErrorBanner";
 import Pagination from "../../components/Pagination";
 import StatusStamp from "../../components/StatusStamp";
+import { formatDate } from "../../utils/formatDate";
 
 export default function AdminBorrowings() {
   const [borrowings, setBorrowings] = useState([]);
@@ -87,9 +88,4 @@ export default function AdminBorrowings() {
       )}
     </div>
   );
-}
-
-function formatDate(iso) {
-  if (!iso) return "—";
-  return new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }

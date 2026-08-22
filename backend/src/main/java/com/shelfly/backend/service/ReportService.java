@@ -61,7 +61,10 @@ public class ReportService {
     }
 
     public List<Borrowing> overdueBorrowings() {
-        return borrowingRepository.findByStatusAndDueDateBefore(BorrowingStatus.BORROWED, java.time.Instant.now());
+        // A book is overdue once its due date has passed, whether the status field still says
+        // BORROWED (hasn't been flipped by the hourly job yet) or already says OVERDUE.
+        return borrowingRepository.findByStatusInAndDueDateBefore(
+                List.of(BorrowingStatus.BORROWED, BorrowingStatus.OVERDUE), java.time.Instant.now());
     }
 
     public DashboardSummary dashboardSummary() {
@@ -83,8 +86,7 @@ public class ReportService {
                         org.springframework.data.mongodb.core.query.Criteria.where("status").is(BorrowingStatus.BORROWED)),
                 Borrowing.class);
 
-        long overdue = borrowingRepository.findByStatusAndDueDateBefore(
-                BorrowingStatus.BORROWED, java.time.Instant.now()).size();
+        long overdue = overdueBorrowings().size();
 
         long totalMembers = mongoTemplate.count(
                 org.springframework.data.mongodb.core.query.Query.query(

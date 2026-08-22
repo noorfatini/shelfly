@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import api from "../../api/axios";
 import LoadingState from "../../components/LoadingState";
 import ErrorBanner from "../../components/ErrorBanner";
+import { formatDate } from "../../utils/formatDate";
 
 export default function AdminDashboard() {
   const [summary, setSummary] = useState(null);
@@ -104,7 +105,7 @@ export default function AdminDashboard() {
                   <tr key={b.id}>
                     <td>{b.userName}</td>
                     <td>{b.bookTitle}</td>
-                    <td>{new Date(b.dueDate).toLocaleDateString()}</td>
+                    <td>{formatDate(b.dueDate)}</td>
                   </tr>
                 ))}
               </tbody>
