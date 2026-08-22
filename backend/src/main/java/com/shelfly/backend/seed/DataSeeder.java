@@ -52,7 +52,7 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
 
         User member = User.builder()
-                .name("Aisyah Member")
+                .name("Aisyah")
                 .email("member@shelfly.com")
                 .password(passwordEncoder.encode("Member123!"))
                 .role(Role.MEMBER)
@@ -71,20 +71,23 @@ public class DataSeeder implements CommandLineRunner {
         }
 
         List<Book> books = List.of(
-                Book.builder().title("Clean Code").author("Robert C. Martin").isbn("9780132350884")
-                        .category("Software Engineering").description("A handbook of agile software craftsmanship.")
+                Book.builder().title("A Game of Thrones").author("George R. R. Martin").isbn("9780553593716")
+                        .category("Fantasy").description("The first book in A Song of Ice and Fire — noble houses vie for the Iron Throne.")
                         .totalCopies(3).availableCopies(3).status(BookStatus.ACTIVE).build(),
-                Book.builder().title("Effective Java").author("Joshua Bloch").isbn("9780134685991")
-                        .category("Software Engineering").description("Best practices for the Java platform.")
+                Book.builder().title("Fire & Blood").author("George R. R. Martin").isbn("9781524796280")
+                        .category("Fantasy").description("A history of House Targaryen, and the basis for House of the Dragon.")
                         .totalCopies(2).availableCopies(2).status(BookStatus.ACTIVE).build(),
-                Book.builder().title("Designing Data-Intensive Applications").author("Martin Kleppmann").isbn("9781449373320")
-                        .category("Databases").description("The big ideas behind reliable, scalable systems.")
+                Book.builder().title("The Witherward").author("Hannah Mathewson").isbn("9781542040079")
+                        .category("Fantasy").description("A hidden mirror-London of magical factions, and the girl caught between two worlds.")
                         .totalCopies(2).availableCopies(2).status(BookStatus.ACTIVE).build(),
-                Book.builder().title("The Pragmatic Programmer").author("David Thomas & Andrew Hunt").isbn("9780135957059")
-                        .category("Software Engineering").description("Your journey to mastery.")
-                        .totalCopies(2).availableCopies(2).status(BookStatus.ACTIVE).build(),
+                Book.builder().title("The Name of the Wind").author("Patrick Rothfuss").isbn("9780756404741")
+                        .category("Fantasy").description("The storied life of Kvothe, told in his own words.")
+                        .totalCopies(3).availableCopies(3).status(BookStatus.ACTIVE).build(),
+                Book.builder().title("A Court of Thorns and Roses").author("Sarah J. Maas").isbn("9781635575569")
+                        .category("Romance").description("A huntress is dragged into a treacherous, seductive faerie court.")
+                        .totalCopies(4).availableCopies(4).status(BookStatus.ACTIVE).build(),
                 Book.builder().title("Dune").author("Frank Herbert").isbn("9780441172719")
-                        .category("Fiction").description("A science fiction epic set on the desert planet Arrakis.")
+                        .category("Science Fiction").description("A science fiction epic set on the desert planet Arrakis.")
                         .totalCopies(4).availableCopies(4).status(BookStatus.ACTIVE).build(),
                 Book.builder().title("Sapiens").author("Yuval Noah Harari").isbn("9780062316097")
                         .category("Non-Fiction").description("A brief history of humankind.")
@@ -92,12 +95,12 @@ public class DataSeeder implements CommandLineRunner {
                 Book.builder().title("Atomic Habits").author("James Clear").isbn("9780735211292")
                         .category("Self-Help").description("An easy and proven way to build good habits.")
                         .totalCopies(3).availableCopies(3).status(BookStatus.ACTIVE).build(),
-                Book.builder().title("MongoDB: The Definitive Guide").author("Shannon Bradshaw").isbn("9781491954461")
-                        .category("Databases").description("Powerful and scalable data storage.")
-                        .totalCopies(2).availableCopies(2).status(BookStatus.ACTIVE).build(),
-                Book.builder().title("Out of Print Archive").author("Unknown").isbn("9780000000001")
-                        .category("Reference").description("Retired reference volume kept for archival purposes.")
-                        .totalCopies(1).availableCopies(1).status(BookStatus.INACTIVE).build()
+                Book.builder().title("The Great Gatsby").author("F. Scott Fitzgerald").isbn("9780743273565")
+                        .category("Classic Fiction").description("Jazz Age excess and longing on Long Island.")
+                        .totalCopies(5).availableCopies(5).status(BookStatus.ACTIVE).build(),
+                Book.builder().title("The Silent Patient").author("Alex Michaelides").isbn("9781250301697")
+                        .category("Mystery & Thriller").description("A psychotherapist becomes obsessed with treating a woman who won't speak.")
+                        .totalCopies(2).availableCopies(2).status(BookStatus.INACTIVE).build()
         );
 
         bookRepository.saveAll(books);
@@ -105,19 +108,19 @@ public class DataSeeder implements CommandLineRunner {
 
         // Seed one sample borrowing so /my and reports have something to show immediately
         User member = userRepository.findByEmail("member@shelfly.com").orElse(null);
-        Book cleanCode = bookRepository.findAll().stream()
-                .filter(b -> b.getTitle().equals("Clean Code")).findFirst().orElse(null);
+        Book witherward = bookRepository.findAll().stream()
+                .filter(b -> b.getTitle().equals("The Witherward")).findFirst().orElse(null);
 
-        if (member != null && cleanCode != null) {
-            cleanCode.setAvailableCopies(cleanCode.getAvailableCopies() - 1);
-            bookRepository.save(cleanCode);
+        if (member != null && witherward != null) {
+            witherward.setAvailableCopies(witherward.getAvailableCopies() - 1);
+            bookRepository.save(witherward);
 
             Instant now = Instant.now();
             Borrowing sample = Borrowing.builder()
                     .userId(member.getId())
-                    .bookId(cleanCode.getId())
-                    .bookTitle(cleanCode.getTitle())
-                    .bookCategory(cleanCode.getCategory())
+                    .bookId(witherward.getId())
+                    .bookTitle(witherward.getTitle())
+                    .bookCategory(witherward.getCategory())
                     .userName(member.getName())
                     .borrowDate(now.minus(3, ChronoUnit.DAYS))
                     .dueDate(now.plus(11, ChronoUnit.DAYS))
