@@ -5,6 +5,7 @@ import EmptyState from "../components/EmptyState";
 import ErrorBanner from "../components/ErrorBanner";
 import Pagination from "../components/Pagination";
 import StatusStamp from "../components/StatusStamp";
+import ConfirmDialog from "../components/ConfirmDialog";
 import { Link } from "react-router-dom";
 
 export default function MyBorrowings() {
@@ -15,6 +16,7 @@ export default function MyBorrowings() {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [returningId, setReturningId] = useState(null);
+  const [confirmReturnId, setConfirmReturnId] = useState(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -43,6 +45,12 @@ export default function MyBorrowings() {
     } finally {
       setReturningId(null);
     }
+  }
+
+  async function confirmReturn() {
+    const id = confirmReturnId;
+    setConfirmReturnId(null);
+    await handleReturn(id);
   }
 
   return (
@@ -89,7 +97,7 @@ export default function MyBorrowings() {
                       {b.status !== "RETURNED" && (
                         <button
                           className="btn btn-ghost btn-small"
-                          onClick={() => handleReturn(b.id)}
+                          onClick={() => setConfirmReturnId(b.id)}
                           disabled={returningId === b.id}
                         >
                           {returningId === b.id ? "Returning…" : "Return"}
@@ -104,6 +112,15 @@ export default function MyBorrowings() {
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </>
       )}
+
+      <ConfirmDialog
+        open={!!confirmReturnId}
+        title="Return book"
+        message="Return this book now?"
+        confirmLabel="Return"
+        onConfirm={confirmReturn}
+        onCancel={() => setConfirmReturnId(null)}
+      />
     </div>
   );
 }

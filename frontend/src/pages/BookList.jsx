@@ -8,7 +8,7 @@ import Pagination from "../components/Pagination";
 import StatusStamp from "../components/StatusStamp";
 
 const CATEGORIES = [
-  "Software Engineering", "Databases", "Fiction", "Non-Fiction", "Self-Help", "Reference",
+  "Fantasy", "Romance", "Science Fiction", "Non-Fiction", "Self-Help", "Classic Fiction", "Mystery & Thriller",
 ];
 
 export default function BookList() {
@@ -48,6 +48,14 @@ export default function BookList() {
     fetchBooks();
   }
 
+  function handleClearFilters() {
+    setKeyword("");
+    setCategory("");
+    setSortBy("title");
+    setDirection("asc");
+    setPage(0);
+  }
+
   return (
     <div className="page-container">
       <div className="page-header">
@@ -76,6 +84,7 @@ export default function BookList() {
           <option value="desc">Descending</option>
         </select>
         <button className="btn btn-primary" type="submit">Search</button>
+        <button className="btn btn-ghost" type="button" onClick={handleClearFilters}>Clear filters</button>
       </form>
 
       <ErrorBanner message={error} />

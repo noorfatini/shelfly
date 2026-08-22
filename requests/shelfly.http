@@ -36,7 +36,7 @@ Content-Type: application/json
 }
 
 ### 4. Browse books (public, no token needed) — search + filter + sort + pagination
-GET {{baseUrl}}/books?keyword=clean&category=Software Engineering&status=ACTIVE&sortBy=title&direction=asc&page=0&size=10
+GET {{baseUrl}}/books?keyword=thrones&category=Fantasy&status=ACTIVE&sortBy=title&direction=asc&page=0&size=10
 
 ### 5. Get one book's details
 # Replace {bookId} with a real id from response #4
@@ -48,11 +48,11 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "title": "Refactoring",
-  "author": "Martin Fowler",
-  "isbn": "9780134757599",
-  "category": "Software Engineering",
-  "description": "Improving the design of existing code.",
+  "title": "The Hobbit",
+  "author": "J. R. R. Tolkien",
+  "isbn": "9780547928227",
+  "category": "Fantasy",
+  "description": "Bilbo Baggins is swept into an unexpected adventure.",
   "totalCopies": 2,
   "status": "ACTIVE"
 }
@@ -63,11 +63,11 @@ Content-Type: application/json
 Authorization: Bearer {{adminToken}}
 
 {
-  "title": "Refactoring, 2nd Edition",
-  "author": "Martin Fowler",
-  "isbn": "9780134757599",
-  "category": "Software Engineering",
-  "description": "Updated edition.",
+  "title": "The Hobbit",
+  "author": "J. R. R. Tolkien",
+  "isbn": "9780547928227",
+  "category": "Fantasy",
+  "description": "Bilbo Baggins is swept into an unexpected adventure. Now with a third copy.",
   "totalCopies": 3,
   "status": "ACTIVE"
 }

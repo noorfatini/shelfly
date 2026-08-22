@@ -44,6 +44,13 @@ export default function AdminBorrowings() {
           <option value="RETURNED">Returned</option>
           <option value="OVERDUE">Overdue</option>
         </select>
+        <button
+          className="btn btn-ghost"
+          type="button"
+          onClick={() => { setStatus(""); setPage(0); }}
+        >
+          Clear filters
+        </button>
       </div>
 
       <ErrorBanner message={error} />

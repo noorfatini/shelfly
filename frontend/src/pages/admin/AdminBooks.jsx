@@ -5,6 +5,7 @@ import EmptyState from "../../components/EmptyState";
 import ErrorBanner from "../../components/ErrorBanner";
 import Pagination from "../../components/Pagination";
 import StatusStamp from "../../components/StatusStamp";
+import ConfirmDialog from "../../components/ConfirmDialog";
 
 const emptyForm = { title: "", author: "", isbn: "", category: "", description: "", totalCopies: 1, status: "ACTIVE" };
 
@@ -18,6 +19,7 @@ export default function AdminBooks() {
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // { type: "delete" | "deactivate", id }
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,13 +83,19 @@ export default function AdminBooks() {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm("Delete this book permanently? This cannot be undone.")) return;
     try {
       await api.delete(`/books/${id}`);
       await load();
     } catch (err) {
       setError(err.response?.data?.message || "Could not delete this book.");
     }
+  }
+
+  async function runConfirmedAction() {
+    if (!confirmAction) return;
+    if (confirmAction.type === "deactivate") await handleDeactivate(confirmAction.id);
+    if (confirmAction.type === "delete") await handleDelete(confirmAction.id);
+    setConfirmAction(null);
   }
 
   return (
@@ -167,9 +175,19 @@ export default function AdminBooks() {
                     <td className="row-actions">
                       <button className="btn btn-ghost btn-small" onClick={() => openEdit(b)}>Edit</button>
                       {b.status === "ACTIVE" && (
-                        <button className="btn btn-ghost btn-small" onClick={() => handleDeactivate(b.id)}>Deactivate</button>
+                        <button
+                          className="btn btn-ghost btn-small"
+                          onClick={() => setConfirmAction({ type: "deactivate", id: b.id })}
+                        >
+                          Deactivate
+                        </button>
                       )}
-                      <button className="btn btn-ghost btn-small btn-danger" onClick={() => handleDelete(b.id)}>Delete</button>
+                      <button
+                        className="btn btn-ghost btn-small btn-danger"
+                        onClick={() => setConfirmAction({ type: "delete", id: b.id })}
+                      >
+                        Delete
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -179,6 +197,20 @@ export default function AdminBooks() {
           <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
         </>
       )}
+
+      <ConfirmDialog
+        open={!!confirmAction}
+        title={confirmAction?.type === "delete" ? "Delete book" : "Deactivate book"}
+        message={
+          confirmAction?.type === "delete"
+            ? "Delete this book permanently? This cannot be undone."
+            : "Deactivate this book? Members won't be able to borrow it until it's reactivated."
+        }
+        confirmLabel={confirmAction?.type === "delete" ? "Delete" : "Deactivate"}
+        danger={confirmAction?.type === "delete"}
+        onConfirm={runConfirmedAction}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 }
