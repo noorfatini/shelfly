@@ -1,6 +1,8 @@
 # --- Backend (Java / Maven) ---
 backend/target/
 backend/.mvn/wrapper/maven-wrapper.jar
+# This machine's real MongoDB credentials -- never push this (see application.properties).
+backend/src/main/resources/application-local.properties
 *.class
 *.log
 
