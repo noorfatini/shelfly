@@ -15,9 +15,9 @@ public interface BorrowingRepository extends MongoRepository<Borrowing, String> 
 
     Page<Borrowing> findByStatus(BorrowingStatus status, Pageable pageable);
 
-    List<Borrowing> findByUserIdAndBookIdAndStatus(String userId, String bookId, BorrowingStatus status);
+    List<Borrowing> findByUserIdAndBookIdAndStatusIn(String userId, String bookId, List<BorrowingStatus> statuses);
 
-    long countByUserIdAndStatus(String userId, BorrowingStatus status);
+    long countByUserIdAndStatusIn(String userId, List<BorrowingStatus> statuses);
 
     Optional<Borrowing> findByIdAndUserId(String id, String userId);
 

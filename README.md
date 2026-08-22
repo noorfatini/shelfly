@@ -205,7 +205,6 @@ Full request/response examples are in `requests/shelfly.http`.
 - A member can't hold more than 3 active borrowings at once.
 - Returning a book adds one back to its available copies (never more than the total).
 - Emails must be unique when registering.
-- A book's total copies can't be edited below the number currently on loan.
 - A book can't be deleted while any copies are on loan (it must be deactivated instead).
 - A borrowing automatically switches from `BORROWED` to `OVERDUE` once its due date passes
   (checked every hour by a background job, and always correct live in the dashboard/reports).

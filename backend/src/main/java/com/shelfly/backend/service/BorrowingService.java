@@ -48,14 +48,18 @@ public class BorrowingService {
             throw new BusinessRuleException("No copies of this book are currently available");
         }
 
+        // A book is still "held" whether its status is BORROWED or already OVERDUE --
+        // only RETURNED means the member no longer has it.
+        List<BorrowingStatus> activeStatuses = List.of(BorrowingStatus.BORROWED, BorrowingStatus.OVERDUE);
+
         // Business rule: cannot borrow the same book twice while still holding a copy
-        List<Borrowing> existing = borrowingRepository.findByUserIdAndBookIdAndStatus(userId, bookId, BorrowingStatus.BORROWED);
+        List<Borrowing> existing = borrowingRepository.findByUserIdAndBookIdAndStatusIn(userId, bookId, activeStatuses);
         if (!existing.isEmpty()) {
             throw new BusinessRuleException("You already have an active borrowing for this book");
         }
 
         // Business rule: cannot exceed max active borrowings
-        long activeCount = borrowingRepository.countByUserIdAndStatus(userId, BorrowingStatus.BORROWED);
+        long activeCount = borrowingRepository.countByUserIdAndStatusIn(userId, activeStatuses);
         if (activeCount >= maxActiveBorrowings) {
             throw new BusinessRuleException("You have reached the maximum of " + maxActiveBorrowings + " active borrowings");
         }
