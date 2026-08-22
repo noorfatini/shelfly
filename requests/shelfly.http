@@ -1,0 +1,119 @@
+### Shelfly API — manual test requests
+### Works with the IntelliJ HTTP Client or the VS Code "REST Client" extension.
+### Run requests top to bottom: register/login first to get a token, then paste
+### the token into the @adminToken / @memberToken variables below.
+
+@baseUrl = http://localhost:8082/api
+@adminToken = PASTE_ADMIN_TOKEN_HERE
+@memberToken = PASTE_MEMBER_TOKEN_HERE
+
+### 1. Register a new member
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test.user@shelfly.com",
+  "password": "Password123!"
+}
+
+### 2. Login as seeded admin
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "admin@shelfly.com",
+  "password": "Admin123!"
+}
+
+### 3. Login as seeded member
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "member@shelfly.com",
+  "password": "Member123!"
+}
+
+### 4. Browse books (public, no token needed) — search + filter + sort + pagination
+GET {{baseUrl}}/books?keyword=clean&category=Software Engineering&status=ACTIVE&sortBy=title&direction=asc&page=0&size=10
+
+### 5. Get one book's details
+# Replace {bookId} with a real id from response #4
+GET {{baseUrl}}/books/{bookId}
+
+### 6. Admin creates a book
+POST {{baseUrl}}/books
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "title": "Refactoring",
+  "author": "Martin Fowler",
+  "isbn": "9780134757599",
+  "category": "Software Engineering",
+  "description": "Improving the design of existing code.",
+  "totalCopies": 2,
+  "status": "ACTIVE"
+}
+
+### 7. Admin updates a book
+PUT {{baseUrl}}/books/{bookId}
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "title": "Refactoring, 2nd Edition",
+  "author": "Martin Fowler",
+  "isbn": "9780134757599",
+  "category": "Software Engineering",
+  "description": "Updated edition.",
+  "totalCopies": 3,
+  "status": "ACTIVE"
+}
+
+### 8. Admin deactivates a book (soft delete)
+PATCH {{baseUrl}}/books/{bookId}/deactivate
+Authorization: Bearer {{adminToken}}
+
+### 9. Admin deletes a book (only allowed if 0 copies on loan)
+DELETE {{baseUrl}}/books/{bookId}
+Authorization: Bearer {{adminToken}}
+
+### 10. Member borrows a book
+POST {{baseUrl}}/borrowings
+Content-Type: application/json
+Authorization: Bearer {{memberToken}}
+
+{
+  "bookId": "{bookId}"
+}
+
+### 11. Member views their own borrowings
+GET {{baseUrl}}/borrowings/my?page=0&size=10
+Authorization: Bearer {{memberToken}}
+
+### 12. Member returns a book
+# Replace {borrowingId} with an id from response #11
+PATCH {{baseUrl}}/borrowings/{borrowingId}/return
+Authorization: Bearer {{memberToken}}
+
+### 13. Admin views all borrowings (optionally filter by status)
+GET {{baseUrl}}/borrowings/all?status=BORROWED&page=0&size=10
+Authorization: Bearer {{adminToken}}
+
+### 14. Admin dashboard summary
+GET {{baseUrl}}/reports/summary
+Authorization: Bearer {{adminToken}}
+
+### 15. Report: most borrowed books (MongoDB aggregation)
+GET {{baseUrl}}/reports/most-borrowed
+Authorization: Bearer {{adminToken}}
+
+### 16. Report: borrowings by category (MongoDB aggregation)
+GET {{baseUrl}}/reports/by-category
+Authorization: Bearer {{adminToken}}
+
+### 17. Report: overdue borrowings
+GET {{baseUrl}}/reports/overdue
+Authorization: Bearer {{adminToken}}
