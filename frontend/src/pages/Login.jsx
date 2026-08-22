@@ -54,11 +54,11 @@ export default function Login() {
           New here? <Link to="/register">Create an account</Link>
         </p>
 
-        <div className="demo-hint">
+        {/* <div className="demo-hint">
           <strong>Demo accounts</strong>
           <div>Admin — admin@shelfly.com / Admin123!</div>
           <div>Member — member@shelfly.com / Member123!</div>
-        </div>
+        </div> */}
       </div>
     </div>
   );

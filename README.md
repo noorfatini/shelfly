@@ -1,116 +1,146 @@
 # Shelfly — Library Borrowing System
 
-Full-stack capstone project: React (Vite) + Spring Boot (Java 21) + MongoDB + JWT authentication.
+A full-stack library system built with **React**, **Spring Boot (Java 21)**, **MongoDB**, and **JWT authentication**.
 
-Members can browse the catalogue and borrow/return books. Admins (librarians) manage the
-book catalogue, view every borrowing record, and see reporting/aggregation dashboards.
-
----
-
-## Prerequisites
-
-- **Java 21** (JDK)
-- **Maven** (or an IDE with Maven bundled, e.g. IntelliJ IDEA — recommended)
-- **Node.js** (18+) and npm
-- **MongoDB Server** running locally on the default port (`27017`), no auth required for dev
+Members can browse the book catalogue and borrow or return books. Admins (librarians) manage the
+book catalogue, see every borrowing record, and view reports (most borrowed books, borrowings by
+category, overdue books, and dashboard totals).
 
 ---
 
-## 1. Database
+## What the system does
 
-Start MongoDB locally. No manual collection setup is needed — the backend creates
-collections and indexes automatically, and seeds sample data on first run.
-
-```bash
-# macOS (Homebrew)
-brew services start mongodb-community
-
-# Windows — MongoDB usually installs as a service and starts automatically.
-# If not: run "MongoDB" from Services, or run mongod.exe manually.
-
-# Linux
-sudo systemctl start mongod
-```
-
-If you'd rather use **MongoDB Atlas** (cloud) instead of local Mongo, just set the
-`MONGODB_URI` environment variable to your Atlas connection string before starting the
-backend (see step 2) — everything else stays the same.
+- **Two roles**: Admin (librarian) and Member.
+- **Members** can register, log in, browse and search books, borrow a book, view their own
+  borrowings, and return a book.
+- **Admins** can create/edit/deactivate/delete books, see every borrowing record from every
+  member, and view a reports dashboard.
+- **Business rules** are enforced on the backend: a member can't borrow a book with no copies
+  left, can't borrow the same book twice at once, and can't hold more than 3 active borrowings
+  at a time. Returning a book updates its available copies.
+- **Search, filter, sort, and pagination** on the book catalogue.
+- **MongoDB aggregation reports**: most borrowed books, borrowings by category, dashboard
+  summary, and overdue borrowings.
 
 ---
 
-## 2. Backend Setup
+## Prerequisites (Windows)
 
-The backend reads configuration from environment variables
-(see `backend/src/main/resources/application.properties`). Sensible defaults are built in,
-so **for local development you don't need to set anything** — just run it.
+- **Java 21 (JDK)**
+- **Node.js 18+** and npm
+- **MongoDB** running locally on the default port (`27017`)
 
-| Variable | Required | Default | Notes |
-|---|---|---|---|
-| `MONGODB_HOST` | No | `localhost` | |
-| `MONGODB_PORT` | No | `27017` | |
-| `MONGODB_DATABASE` | No | `shelfly` | |
-| `MONGODB_URI` | No | *(built from the above)* | Set this instead if using Atlas |
-| `JWT_SECRET` | No (dev) | built-in dev key | **Override this for any real deployment** |
-| `JWT_EXPIRATION_MINUTES` | No | `60` | |
-| `SERVER_PORT` | No | `8082` | |
-| `SHELFLY_MAX_ACTIVE_BORROWINGS` | No | `3` | Business rule: max books a member can hold at once |
-| `SHELFLY_LOAN_PERIOD_DAYS` | No | `14` | Business rule: loan period length |
+You do **not** need Maven installed — this project includes a Maven wrapper (`mvnw.cmd`) that
+downloads everything it needs automatically.
 
-**Run the backend** from the `backend/` folder:
+---
 
-```bash
+## 1. Start MongoDB
+
+On Windows, MongoDB usually installs as a background service and is already running. If not,
+open **Services** (search for it in the Start menu), find **MongoDB**, and start it.
+
+No manual database setup is needed — the backend creates the collections and indexes by itself,
+and fills in sample data the first time it runs (see [Sample Data](#sample-data--seed-instructions) below).
+
+---
+
+## 2. Run the backend
+
+Open a terminal (PowerShell) in the project folder:
+
+```powershell
 cd backend
-mvn spring-boot:run
+.\mvnw.cmd spring-boot:run
 ```
 
-> No Maven installed? Open the `backend/` folder in **IntelliJ IDEA** — it will detect
-> `pom.xml`, download dependencies automatically, and you can just click the ▶ Run button
-> on `BackendApplication.java`.
+Wait until you see `Started BackendApplication` in the output. The API is now running at
+**http://localhost:8082**.
 
-The API starts on **http://localhost:8082**.
+By default it connects to MongoDB on `localhost:27017` with no password, using a database
+called `shelfly`. If your MongoDB needs a username and password, set the `MONGODB_URI`
+environment variable to your full connection string before running the command above, for
+example:
 
-On first run, `DataSeeder` automatically creates:
-- An admin account: `admin@shelfly.com` / `Admin123!`
-- A member account: `member@shelfly.com` / `Member123!`
-- 9 sample books across several categories
-- 1 sample active borrowing (so reports/dashboard aren't empty on first look)
-
-It only seeds if the collections are empty, so it's safe to restart the app repeatedly.
+```powershell
+$env:MONGODB_URI = "mongodb://username:password@localhost:27017/shelfly"
+.\mvnw.cmd spring-boot:run
+```
 
 ---
 
-## 3. Frontend Setup
+## 3. Run the frontend
 
-**Install dependencies and run** from the `frontend/` folder:
+Open a **second** terminal:
 
-```bash
+```powershell
 cd frontend
 npm install
 npm run dev
 ```
 
-The app starts on **http://localhost:5173**.
+Wait for `Local: http://localhost:5173/` to appear, then open that address in your browser.
 
-Vite's dev server proxies all `/api/**` requests to `http://localhost:8082` (see
-`vite.config.js`), so no frontend `.env` file is needed — just make sure the backend is
-running first.
+The frontend automatically forwards all `/api/...` requests to the backend on port 8082, so
+make sure the backend (step 2) is already running first.
 
 ---
 
 ## Quick Start Summary
 
-```bash
-# Terminal 1
-brew services start mongodb-community   # or your OS's equivalent
+```powershell
+# Terminal 1 — backend
+cd backend
+.\mvnw.cmd spring-boot:run
 
-# Terminal 2
-cd backend && mvn spring-boot:run
-
-# Terminal 3
-cd frontend && npm install && npm run dev
+# Terminal 2 — frontend
+cd frontend
+npm install
+npm run dev
 ```
 
-Then open **http://localhost:5173** and log in with one of the seeded accounts above.
+Then open **http://localhost:5173** and log in with one of the accounts below.
+
+---
+
+## Sample Data / Seed Instructions
+
+The backend automatically creates sample data the **first time it runs**, as long as the
+database is empty. You don't need to do anything — it just happens.
+
+It creates:
+
+**3 user accounts:**
+
+| Role | Email | Password |
+|---|---|---|
+| Admin | `admin@shelfly.com` | `Admin123!` |
+| Member (Athirah) | `member@shelfly.com` | `Member123!` |
+| Member (Nurin) | `nurin@shelfly.com` | `Nurin123!` |
+
+**10 books** across different categories (Fantasy, Romance, Science Fiction, Non-Fiction,
+Self-Help, Classic Fiction, Mystery & Thriller) — one of them ("The Silent Patient") is seeded
+as `INACTIVE` so you can see that state right away.
+
+**A set of borrowings that already cover every condition**, so you don't have to manually
+create data before demoing:
+
+- Athirah has one book currently **borrowed**, one already **returned**, and one that is
+  **overdue**.
+- Nurin already has **3 active borrowings** — the maximum allowed — so logging in as her and
+  trying to borrow one more book will correctly fail with a "maximum active borrowings" error.
+  This is the easiest way to demo the borrowing-limit business rule live.
+
+**To reset and reseed** (for example, if you want a clean slate before your demo), clear the
+three collections and restart the backend:
+
+```powershell
+mongosh "mongodb://localhost:27017/shelfly" --eval "db.users.deleteMany({}); db.books.deleteMany({}); db.borrowings.deleteMany({})"
+```
+
+(If your MongoDB needs auth, add your username/password to that connection string the same way
+as in step 2.) Then restart the backend — it will detect the empty database and seed everything
+again.
 
 ---
 
@@ -121,7 +151,7 @@ shelfly/
 ├── backend/                 Spring Boot API (Java 21, MongoDB, JWT)
 │   └── src/main/java/com/shelfly/backend/
 │       ├── model/            User, Book, Borrowing + enums
-│       ├── repository/       Spring Data Mongo repos + custom search
+│       ├── repository/       Spring Data Mongo repositories
 │       ├── dto/               Request/response shapes
 │       ├── service/           Business logic (Auth, Book, Borrowing, Report)
 │       ├── controller/        REST endpoints
@@ -132,11 +162,11 @@ shelfly/
 ├── frontend/                 React (Vite) SPA
 │   └── src/
 │       ├── pages/             Route-level pages (+ pages/admin/)
-│       ├── components/        Shared UI (navbar, tables, states, pagination)
+│       ├── components/        Shared UI (navbar, tables, states, pagination, confirm dialog)
 │       ├── context/           Auth context (JWT session)
 │       └── api/               Axios client with auth interceptor
 ├── requests/shelfly.http     Example API calls for every endpoint (IntelliJ/VS Code REST Client)
-├── screenshots/              Put your demo screenshots here before submission
+├── screenshots/              Demo screenshots (see below)
 └── README.md                  You are here
 ```
 
@@ -147,12 +177,12 @@ shelfly/
 | Method | Endpoint | Access | Description |
 |---|---|---|---|
 | POST | `/api/auth/register` | Public | Create a member account |
-| POST | `/api/auth/login` | Public | Log in, returns JWT |
+| POST | `/api/auth/login` | Public | Log in, returns a JWT |
 | GET | `/api/books` | Public | List books — supports `keyword`, `category`, `status`, `sortBy`, `direction`, `page`, `size` |
 | GET | `/api/books/{id}` | Public | Book details |
 | POST | `/api/books` | Admin | Create a book |
 | PUT | `/api/books/{id}` | Admin | Update a book |
-| PATCH | `/api/books/{id}/deactivate` | Admin | Deactivate (soft delete) a book |
+| PATCH | `/api/books/{id}/deactivate` | Admin | Deactivate a book |
 | DELETE | `/api/books/{id}` | Admin | Delete a book (blocked if copies are on loan) |
 | POST | `/api/borrowings` | Member | Borrow a book |
 | GET | `/api/borrowings/my` | Member | View own borrowings (paginated) |
@@ -163,42 +193,85 @@ shelfly/
 | GET | `/api/reports/by-category` | Admin | Borrowings grouped by category (aggregation) |
 | GET | `/api/reports/overdue` | Admin | Currently overdue borrowings |
 
-Full request/response examples: see `requests/shelfly.http`.
+Full request/response examples are in `requests/shelfly.http`.
 
 ---
 
 ## Business Rules Implemented
 
-- A book cannot be borrowed if it has zero available copies.
-- A book cannot be borrowed while `INACTIVE`.
-- A member cannot borrow the same book twice while an active borrowing exists.
-- A member cannot hold more than `SHELFLY_MAX_ACTIVE_BORROWINGS` (default 3) active borrowings.
-- Returning a book increments the book's `availableCopies` and cannot exceed `totalCopies`.
-- Emails must be unique at registration.
-- Editing a book's `totalCopies` cannot drop below the number of copies currently on loan.
-- A book cannot be hard-deleted while any copies are on loan (deactivate instead).
-- Borrowings automatically flip from `BORROWED` to `OVERDUE` once `dueDate` passes
-  (checked hourly via a scheduled job, and live in the `/reports/overdue` query).
+- A book can't be borrowed if it has no copies left.
+- A book can't be borrowed while it's marked `INACTIVE`.
+- A member can't borrow the same book twice while they still have it out.
+- A member can't hold more than 3 active borrowings at once.
+- Returning a book adds one back to its available copies (never more than the total).
+- Emails must be unique when registering.
+- A book's total copies can't be edited below the number currently on loan.
+- A book can't be deleted while any copies are on loan (it must be deactivated instead).
+- A borrowing automatically switches from `BORROWED` to `OVERDUE` once its due date passes
+  (checked every hour by a background job, and always correct live in the dashboard/reports).
 
 ## Database Design Notes
 
-- `users.email` — unique index (enforces the business rule at the database layer, not just in code).
-- `books.title`, `books.category`, `books.status` — indexed to support the search/filter/sort requirement efficiently.
-- `books.isbn` — unique + sparse index (sparse because ISBN is optional).
-- `borrowings.userId`, `borrowings.bookId`, `borrowings.status` — indexed since every borrowing
-  query (my borrowings, admin filters, reports) filters on one of these.
-- `Borrowing` documents **denormalise** `bookTitle`, `bookCategory`, and `userName` at creation
-  time. This is a deliberate document-modelling choice: borrowing lists and reports are read far
-  more often than books/users change, so storing a snapshot avoids a lookup/join on every read —
-  a natural fit for MongoDB's document model versus a relational join.
+- `users.email` has a unique index — this enforces "no duplicate emails" at the database level,
+  not just in the code.
+- `books.title`, `books.category`, and `books.status` are indexed to make search/filter/sort fast.
+- `books.isbn` is unique (and optional, since not every book needs one).
+- `borrowings.userId`, `borrowings.bookId`, and `borrowings.status` are indexed, since every
+  borrowing query (my borrowings, admin filters, reports) filters on one of these.
+- A `Borrowing` record stores a copy of the book's title/category and the member's name at the
+  time it was created, instead of only storing IDs. This is a deliberate choice: borrowing lists
+  and reports are read far more often than a book or member's details change, so this avoids a
+  lookup on every single read — a natural fit for MongoDB's document model.
+
+## Bonus Features Implemented
+
+- **Status badges** — every book and borrowing shows a clear status pill (Active, Inactive,
+  Borrowed, Returned, Overdue) instead of plain text.
+- **Better seed script** — sample data only loads once (it checks if the database is already
+  empty first), and it's built to show every condition at once: an active borrow, a returned
+  book, an overdue book, an inactive book, and a member already at the borrowing limit.
+- **Extra reports** — the brief only asks for one MongoDB aggregation report; this project has
+  four (dashboard summary, most-borrowed books, borrowings by category, and overdue list).
+- **Responsive layout** — the navbar, book details page, and forms reflow properly on small
+  screens, not just on desktop.
+- **Multi-field filtering** — the catalogue combines keyword search, category filter, sort
+  field, and sort direction together, plus a "Clear filters" button.
+- **Custom confirmation dialogs** — deleting, deactivating, or returning a book shows a styled
+  confirmation popup instead of the browser's plain alert box.
 
 ## Assumptions & Limitations
 
-- Loan period and max-active-borrowings are configurable via env vars but not currently
-  editable from the admin UI — a reasonable stretch feature if time allows.
-- Overdue status is corrected by a background job that runs hourly, so there can be up to a
-  ~1 hour lag between a due date passing and the status label updating (the `/reports/overdue`
-  endpoint always computes live, so the dashboard's "overdue" figures are always accurate
-  even between job runs).
-- No payment, fines, or notification system — intentionally out of scope per the brief's
-  scope-control guidance.
+- The loan period (14 days) and the borrowing limit (3 books) can be changed via environment
+  variables, but not yet from the admin screen itself — a reasonable next step if there's time.
+- The overdue status is corrected by a background job that runs once an hour, so there can be
+  up to an hour's delay before a borrowing's status label updates to `OVERDUE` on its own.
+  The dashboard and reports don't have this delay — they always calculate "overdue" live.
+- There's no payment, fines, or email notification system. This is intentional — the brief asks
+  to keep scope focused, and those features weren't part of the required functionality.
+
+---
+
+## Screenshots
+
+Screenshots go in the `screenshots/` folder in this repo, using the filenames below — the
+images will then show up automatically right here in this README.
+
+| File to save | What to capture |
+|---|---|
+| `screenshots/01-login.png` | The login page |
+| `screenshots/02-catalogue.png` | The book catalogue, with a search or filter applied |
+| `screenshots/03-book-details.png` | A single book's details page |
+| `screenshots/04-my-borrowings.png` | "My Borrowings" showing a borrowed, returned, and overdue book together (log in as Athirah) |
+| `screenshots/05-borrow-limit.png` | The "maximum active borrowings" error (log in as Nurin and try to borrow another book) |
+| `screenshots/06-admin-manage-books.png` | The admin "Manage Books" page |
+| `screenshots/07-admin-borrowings.png` | The admin "All Borrowings" page |
+| `screenshots/08-admin-dashboard.png` | The admin reports dashboard |
+
+![Login](screenshots/01-login.png)
+![Catalogue](screenshots/02-catalogue.png)
+![Book details](screenshots/03-book-details.png)
+![My borrowings](screenshots/04-my-borrowings.png)
+![Borrow limit reached](screenshots/05-borrow-limit.png)
+![Admin manage books](screenshots/06-admin-manage-books.png)
+![Admin all borrowings](screenshots/07-admin-borrowings.png)
+![Admin dashboard](screenshots/08-admin-dashboard.png)
