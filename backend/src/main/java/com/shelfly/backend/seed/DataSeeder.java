@@ -51,17 +51,26 @@ public class DataSeeder implements CommandLineRunner {
                 .active(true)
                 .build();
 
-        User member = User.builder()
-                .name("Aisyah")
+        User athirah = User.builder()
+                .name("Athirah")
                 .email("member@shelfly.com")
                 .password(passwordEncoder.encode("Member123!"))
                 .role(Role.MEMBER)
                 .active(true)
                 .build();
 
+        User nurin = User.builder()
+                .name("Nurin")
+                .email("nurin@shelfly.com")
+                .password(passwordEncoder.encode("Nurin123!"))
+                .role(Role.MEMBER)
+                .active(true)
+                .build();
+
         userRepository.save(admin);
-        userRepository.save(member);
-        log.info("Seeded default admin (admin@shelfly.com / Admin123!) and member (member@shelfly.com / Member123!) accounts");
+        userRepository.save(athirah);
+        userRepository.save(nurin);
+        log.info("Seeded admin (admin@shelfly.com / Admin123!), Athirah (member@shelfly.com / Member123!) and Nurin (nurin@shelfly.com / Nurin123!)");
     }
 
     private void seedBooks() {
@@ -106,28 +115,65 @@ public class DataSeeder implements CommandLineRunner {
         bookRepository.saveAll(books);
         log.info("Seeded {} sample books", books.size());
 
-        // Seed one sample borrowing so /my and reports have something to show immediately
-        User member = userRepository.findByEmail("member@shelfly.com").orElse(null);
-        Book witherward = bookRepository.findAll().stream()
-                .filter(b -> b.getTitle().equals("The Witherward")).findFirst().orElse(null);
+        seedBorrowings();
+    }
 
-        if (member != null && witherward != null) {
-            witherward.setAvailableCopies(witherward.getAvailableCopies() - 1);
-            bookRepository.save(witherward);
+    /**
+     * Seeds borrowings that deliberately cover every status/condition the demo needs to show:
+     * a normal active borrow, a returned book, an overdue book, and a member sitting exactly
+     * at the active-borrowing limit (so attempting one more triggers the business rule live).
+     */
+    private void seedBorrowings() {
+        User athirah = userRepository.findByEmail("member@shelfly.com").orElse(null);
+        User nurin = userRepository.findByEmail("nurin@shelfly.com").orElse(null);
+        if (athirah == null || nurin == null) return;
 
-            Instant now = Instant.now();
-            Borrowing sample = Borrowing.builder()
-                    .userId(member.getId())
-                    .bookId(witherward.getId())
-                    .bookTitle(witherward.getTitle())
-                    .bookCategory(witherward.getCategory())
-                    .userName(member.getName())
-                    .borrowDate(now.minus(3, ChronoUnit.DAYS))
-                    .dueDate(now.plus(11, ChronoUnit.DAYS))
-                    .status(BorrowingStatus.BORROWED)
-                    .build();
-            borrowingRepository.save(sample);
-            log.info("Seeded 1 sample borrowing for member@shelfly.com");
+        Instant now = Instant.now();
+
+        // Athirah: one active borrow, one returned, one overdue -- shows all three states.
+        borrowBook(athirah, "The Witherward", now.minus(3, ChronoUnit.DAYS), now.plus(11, ChronoUnit.DAYS),
+                BorrowingStatus.BORROWED, null);
+        borrowBook(athirah, "Dune", now.minus(20, ChronoUnit.DAYS), now.minus(6, ChronoUnit.DAYS),
+                BorrowingStatus.RETURNED, now.minus(2, ChronoUnit.DAYS));
+        borrowBook(athirah, "A Game of Thrones", now.minus(20, ChronoUnit.DAYS), now.minus(6, ChronoUnit.DAYS),
+                BorrowingStatus.OVERDUE, null);
+
+        // Nurin: exactly 3 active borrowings -- at SHELFLY_MAX_ACTIVE_BORROWINGS, so trying to
+        // borrow a 4th book in the demo will correctly hit "maximum active borrowings" live.
+        borrowBook(nurin, "Fire & Blood", now.minus(2, ChronoUnit.DAYS), now.plus(12, ChronoUnit.DAYS),
+                BorrowingStatus.BORROWED, null);
+        borrowBook(nurin, "A Court of Thorns and Roses", now.minus(5, ChronoUnit.DAYS), now.plus(9, ChronoUnit.DAYS),
+                BorrowingStatus.BORROWED, null);
+        borrowBook(nurin, "Sapiens", now.minus(1, ChronoUnit.DAYS), now.plus(13, ChronoUnit.DAYS),
+                BorrowingStatus.BORROWED, null);
+
+        log.info("Seeded sample borrowings: Athirah (borrowed, returned, overdue) and Nurin (3 active, at the limit)");
+    }
+
+    private void borrowBook(User user, String bookTitle, Instant borrowDate, Instant dueDate,
+                             BorrowingStatus status, Instant returnDate) {
+        Book book = bookRepository.findAll().stream()
+                .filter(b -> b.getTitle().equals(bookTitle)).findFirst().orElse(null);
+        if (book == null) return;
+
+        // A returned book's copy is already back on the shelf; only an active/overdue
+        // borrowing actually holds a copy out.
+        if (status != BorrowingStatus.RETURNED) {
+            book.setAvailableCopies(book.getAvailableCopies() - 1);
+            bookRepository.save(book);
         }
+
+        Borrowing borrowing = Borrowing.builder()
+                .userId(user.getId())
+                .bookId(book.getId())
+                .bookTitle(book.getTitle())
+                .bookCategory(book.getCategory())
+                .userName(user.getName())
+                .borrowDate(borrowDate)
+                .dueDate(dueDate)
+                .returnDate(returnDate)
+                .status(status)
+                .build();
+        borrowingRepository.save(borrowing);
     }
 }
