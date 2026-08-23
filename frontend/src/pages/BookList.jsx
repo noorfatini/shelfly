@@ -13,6 +13,7 @@ const CATEGORIES = [
 
 export default function BookList() {
   const [books, setBooks] = useState([]);
+  const [keywordInput, setKeywordInput] = useState("");
   const [keyword, setKeyword] = useState("");
   const [category, setCategory] = useState("");
   const [sortBy, setSortBy] = useState("title");
@@ -45,10 +46,11 @@ export default function BookList() {
   function handleSearchSubmit(e) {
     e.preventDefault();
     setPage(0);
-    fetchBooks();
+    setKeyword(keywordInput);
   }
 
   function handleClearFilters() {
+    setKeywordInput("");
     setKeyword("");
     setCategory("");
     setSortBy("title");
@@ -67,8 +69,8 @@ export default function BookList() {
         <input
           type="text"
           placeholder="Search by title or author…"
-          value={keyword}
-          onChange={(e) => setKeyword(e.target.value)}
+          value={keywordInput}
+          onChange={(e) => setKeywordInput(e.target.value)}
         />
         <select value={category} onChange={(e) => { setCategory(e.target.value); setPage(0); }}>
           <option value="">All categories</option>
